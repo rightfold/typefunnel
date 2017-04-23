@@ -8,6 +8,8 @@
 //! conforming to some schema. For example, a call generated from a SQL query
 //! source will invoke the SQL query.
 
+pub mod source;
+
 /// A schema describes the structure of data. Schemas are generated from
 /// sources, and are used to generate web services, serialization functions,
 /// user interfaces, and so on.
