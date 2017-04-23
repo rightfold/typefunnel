@@ -1,9 +1,12 @@
 #![warn(missing_docs)]
 
-//! TypeFunnel is a tool for extracting schemas from sources and generating
-//! assets from these schemas. Examples of sources are SQL queries, WSDL files,
-//! and static data. Examples of assets are user interfaces, web services,
-//! serialization, and documentation.
+//! TypeFunnel is a tool for extracting _schemas_ and _calls_ from _sources_.
+//! Examples of sources are SQL queries, WSDL files, and static data. Schemas
+//! describe the structure of data. From schemas, assets can be generated.
+//! Examples of such assets are user interfaces, web services, serialization,
+//! and documentation. Calls are procedures that fetch or modify data
+//! conforming to some schema. For example, a call generated from a SQL query
+//! source will invoke the SQL query.
 
 /// A schema describes the structure of data. Schemas are generated from
 /// sources, and are used to generate web services, serialization functions,
