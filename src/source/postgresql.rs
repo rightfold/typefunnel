@@ -2,7 +2,7 @@
 
 use Schema;
 use postgres::Connection;
-use postgres::stmt::Statement;
+use postgres::stmt::{Column, Statement};
 use postgres::types::Type;
 use source::HasSchema;
 use std::io;
@@ -78,7 +78,12 @@ fn output_schema(shape: OutputShape, statement: &Statement)
   let columns = statement.columns();
   match shape {
     OutputShape::Table => unimplemented!(),
-    OutputShape::Row => unimplemented!(),
+    OutputShape::Row =>
+      columns.iter()
+      .map(Column::type_)
+      .map(type_to_schema)
+      .collect::<Result<_, _>>()
+      .map(Schema::AllOf),
     OutputShape::Scalar =>
       if columns.len() != 1 {
         Err(io::Error::new(io::ErrorKind::InvalidData, error::SCALAR))
@@ -126,6 +131,21 @@ mod test {
       };
       let schema = source.schema().map_err(|e| e.description().to_string());
       assert_eq!(schema, Ok((Schema::AllOf(vec![]), Schema::String)));
+    });
+  }
+
+  #[test]
+  fn test_row_text() {
+    with_connection(|connection| {
+      let source = Query{
+        connection: connection,
+        query: "SELECT '' :: text, '' :: text".to_string(),
+        input_shape: InputShape::Row,
+        output_shape: OutputShape::Row,
+      };
+      let schema = source.schema().map_err(|e| e.description().to_string());
+      let expected = Schema::AllOf(vec![Schema::String, Schema::String]);
+      assert_eq!(schema, Ok((Schema::AllOf(vec![]), expected)));
     });
   }
 }
