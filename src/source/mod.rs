@@ -8,7 +8,7 @@ pub mod postgresql;
 
 /// Trait for sources that have schemas.
 pub trait HasSchema {
-  /// Return the schema of this source. May have side-effects to retrieve the
-  /// schema.
-  fn schema(self) -> io::Result<Schema>;
+  /// Return the input and output schemas of this source. May have side-effects
+  /// to retrieve the schemas.
+  fn schema(self) -> io::Result<(Schema, Schema)>;
 }
