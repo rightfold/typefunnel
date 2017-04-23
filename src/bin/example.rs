@@ -1,16 +1,24 @@
 extern crate typefunnel;
 
 use std::io;
-use typefunnel::Schema;
 use typefunnel::asset::serialization;
+use typefunnel::source::HasSchema;
+use typefunnel::source::constant::Constant;
 
 fn main() {
   safe_main().unwrap();
 }
 
 fn safe_main() -> io::Result<()> {
-  let mut write = io::stdout();
-  let schema = Schema::AllOf(vec![Schema::String, Schema::String]);
-  serialization::ecmascript::serialize(&mut write, &schema)?;
+  let source = Constant::AllOf(vec![
+    Constant::SignedInteger(42),
+    Constant::DoublePrecision(3.14),
+    Constant::AllOf(vec![
+      Constant::String("Hello, world!".to_string()),
+      Constant::String("Bye, world!".to_string()),
+    ]),
+  ]);
+  let (_, schema) = source.schema()?;
+  serialization::ecmascript::serialize(&mut io::stdout(), &schema)?;
   Ok(())
 }
