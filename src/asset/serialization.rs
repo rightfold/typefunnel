@@ -14,7 +14,7 @@ pub mod ecmascript {
     match *schema {
       Schema::AllOf(ref element_schemas) => {
         for (index, element_schema) in element_schemas.iter().enumerate() {
-          write!(write, "node = document.createElementNS(namespace, 'element-{}');\n", index)?;
+          write!(write, "node = document.createElementNS(namespace, 'element');\n")?;
           write!(write, "parent.appendChild(node);\n")?;
           serialize(write, element_schema)?;
           write!(write, "(document, namespace, node, value[{}]);\n", index)?;
