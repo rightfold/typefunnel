@@ -4,6 +4,7 @@
 use Schema;
 use std::io;
 
+pub mod constant;
 pub mod postgresql;
 
 /// Trait for sources that have schemas.
