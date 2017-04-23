@@ -4,6 +4,8 @@
 use Schema;
 use std::io;
 
+pub mod postgresql;
+
 /// Trait for sources that have schemas.
 pub trait HasSchema {
   /// Return the schema of this source. May have side-effects to retrieve the

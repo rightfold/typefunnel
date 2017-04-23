@@ -8,6 +8,8 @@
 //! conforming to some schema. For example, a call generated from a SQL query
 //! source will invoke the SQL query.
 
+extern crate postgres;
+
 pub mod source;
 
 /// A schema describes the structure of data. Schemas are generated from
