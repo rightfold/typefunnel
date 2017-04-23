@@ -31,7 +31,7 @@ pub mod ecmascript {
       Schema::ByteString =>
         unimplemented!(),
       Schema::String => {
-        write!(write, "node = document.createCDATASection(value);\n")?;
+        write!(write, "node = document.createTextNode(value);\n")?;
         write!(write, "parent.appendChild(node);\n")?;
       },
     }
