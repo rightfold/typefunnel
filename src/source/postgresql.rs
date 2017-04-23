@@ -60,3 +60,36 @@ pub fn type_to_schema(type_: &Type) -> io::Result<Schema> {
     _ => unimplemented!(),
   }
 }
+
+#[cfg(test)]
+mod test {
+  use super::*;
+  use postgres::TlsMode;
+  use std::error::Error;
+  use std::env;
+
+  fn with_connection<F>(body: F) where F: Fn(&Connection) {
+    match env::var("TYPEFUNNEL_TEST_POSTGRESQL") {
+      Ok(connection_str) =>
+        match Connection::connect(connection_str, TlsMode::None) {
+          Ok(connection) => body(&connection),
+          _ => println!("Skipping test: could not connect to PostgreSQL"),
+        },
+      _ =>
+        println!("Skipping test: no PostgreSQL connection information given"),
+    }
+  }
+
+  #[test]
+  fn test_scalar_text() {
+    with_connection(|connection| {
+      let source = Query{
+        connection: connection,
+        query: "SELECT '' :: text".to_string(),
+        shape: Shape::Scalar,
+      };
+      let schema = source.schema().map_err(|e| e.description().to_string());
+      assert_eq!(schema, Ok(Schema::String));
+    });
+  }
+}

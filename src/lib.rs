@@ -15,6 +15,7 @@ pub mod source;
 /// A schema describes the structure of data. Schemas are generated from
 /// sources, and are used to generate web services, serialization functions,
 /// user interfaces, and so on.
+#[derive(Debug, Eq, PartialEq)]
 pub enum Schema {
   /// The data described is a heterogeneous sequence of values.
   AllOf(Vec<Schema>),
