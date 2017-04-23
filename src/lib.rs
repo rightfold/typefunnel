@@ -11,6 +11,7 @@
 extern crate postgres;
 
 pub mod source;
+pub mod asset;
 
 /// A schema describes the structure of data. Schemas are generated from
 /// sources, and are used to generate web services, serialization functions,
