@@ -5,6 +5,7 @@ use postgres::Connection;
 use postgres::stmt::{Column, Statement};
 use postgres::types::Type;
 use source::HasSchema;
+use std::i32;
 use std::io;
 
 mod error {
@@ -96,6 +97,9 @@ fn output_schema(shape: OutputShape, statement: &Statement)
 /// Return the schema that corresponds to a PostgreSQL type.
 pub fn type_to_schema(type_: &Type) -> io::Result<Schema> {
   match *type_ {
+    Type::Int4 => Ok(Schema::SignedInteger(i32::MIN, i32::MAX)),
+    Type::Float4 => Ok(Schema::SinglePrecision),
+    Type::Float8 => Ok(Schema::DoublePrecision),
     Type::Text => Ok(Schema::String),
     _ => unimplemented!(),
   }
@@ -139,12 +143,15 @@ mod test {
     with_connection(|connection| {
       let source = Query{
         connection: connection,
-        query: "SELECT '' :: text, '' :: text".to_string(),
+        query: "SELECT 0 :: int, '' :: text".to_string(),
         input_shape: InputShape::Row,
         output_shape: OutputShape::Row,
       };
       let schema = source.schema().map_err(|e| e.description().to_string());
-      let expected = Schema::AllOf(vec![Schema::String, Schema::String]);
+      let expected = Schema::AllOf(vec![
+        Schema::SignedInteger(i32::MIN, i32::MAX),
+        Schema::String,
+      ]);
       assert_eq!(schema, Ok((Schema::AllOf(vec![]), expected)));
     });
   }
