@@ -10,6 +10,7 @@
 
 extern crate postgres;
 
+pub mod edit_warning;
 pub mod source;
 pub mod asset;
 
