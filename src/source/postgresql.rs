@@ -4,6 +4,7 @@ use Schema;
 use postgres::Connection;
 use postgres::stmt::{Column, Statement};
 use postgres::types::Type;
+use source::call::{ECMAScript, ECMAScriptConvention};
 use source::HasSchema;
 use std::i32;
 use std::io;
@@ -58,6 +59,32 @@ impl<'a, 'b> HasSchema for &'a Query<'b> {
     let input_schema = input_schema(self.input_shape, &statement)?;
     let output_schema = output_schema(self.output_shape, &statement)?;
     Ok((input_schema, output_schema))
+  }
+}
+
+impl<'a, 'b> ECMAScript for &'a Query<'b> {
+  fn ecmascript_call(self, write: &mut io::Write)
+    -> io::Result<ECMAScriptConvention> {
+    write!(write, "(function(client, input, onSuccess, onError) {{\n")?;
+    write!(write, "client.query({{text: '{}', values: ", self.query)?;
+    match self.input_shape {
+      InputShape::Row => write!(write, "input")?,
+      InputShape::Scalar => write!(write, "[input]")?,
+    }
+    write!(write, ", rowMode: 'array'}}, function(err, result) {{\n")?;
+    write!(write, "if (err !== null) {{\n")?;
+    write!(write, "onError(err);\n")?;
+    write!(write, "return;\n")?;
+    write!(write, "}}\nonSuccess(")?;
+    match self.output_shape {
+      OutputShape::Table => write!(write, "result.rows")?,
+      OutputShape::Row => write!(write, "result.rows[0]")?,
+      OutputShape::Scalar => write!(write, "result.rows[0][0]")?,
+    }
+    write!(write, ");\n")?;
+    write!(write, "}});\n")?;
+    write!(write, "}})")?;
+    Ok(ECMAScriptConvention::Asynchronous)
   }
 }
 

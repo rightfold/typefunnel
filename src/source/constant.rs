@@ -1,7 +1,7 @@
 //! This module implements a source that exports constant data.
 
 use Schema;
-use source::call::ECMAScript;
+use source::call::{ECMAScript, ECMAScriptConvention};
 use source::HasSchema;
 use std::io;
 
@@ -23,11 +23,12 @@ impl<'a> HasSchema for &'a Constant {
 }
 
 impl<'a> ECMAScript for &'a Constant {
-  fn ecmascript_call(self, write: &mut io::Write) -> io::Result<()> {
+  fn ecmascript_call(self, write: &mut io::Write)
+    -> io::Result<ECMAScriptConvention> {
     write!(write, "(function() {{\nreturn ")?;
     ecmascript_expression(write, self)?;
     write!(write, ";\n}})")?;
-    Ok(())
+    Ok(ECMAScriptConvention::Synchronous)
   }
 }
 
