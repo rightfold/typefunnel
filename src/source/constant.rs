@@ -1,6 +1,7 @@
 //! This module implements a source that exports constant data.
 
 use Schema;
+use source::call::ECMAScript;
 use source::HasSchema;
 use std::io;
 
@@ -21,6 +22,15 @@ impl<'a> HasSchema for &'a Constant {
   }
 }
 
+impl<'a> ECMAScript for &'a Constant {
+  fn ecmascript_call(self, write: &mut io::Write) -> io::Result<()> {
+    write!(write, "(function() {{\nreturn ")?;
+    ecmascript_expression(write, self)?;
+    write!(write, ";\n}})")?;
+    Ok(())
+  }
+}
+
 fn output_schema(constant: &Constant) -> Schema {
   match *constant {
     Constant::AllOf(ref elements) =>
@@ -34,5 +44,25 @@ fn output_schema(constant: &Constant) -> Schema {
     Constant::DoublePrecision(_) => Schema::DoublePrecision,
     Constant::ByteString(_) => Schema::ByteString,
     Constant::String(_) => Schema::String,
+  }
+}
+
+fn ecmascript_expression(write: &mut io::Write, constant: &Constant)
+  -> io::Result<()> {
+  match *constant {
+    Constant::AllOf(ref elements) => {
+      write!(write, "[\n")?;
+      for element in elements {
+        ecmascript_expression(write, element)?;
+        write!(write, ",\n")?;
+      }
+      write!(write, "]")?;
+      Ok(())
+    },
+    Constant::SignedInteger(value) => write!(write, "{}", value),
+    Constant::SinglePrecision(value) => write!(write, "{}", value),
+    Constant::DoublePrecision(value) => write!(write, "{}", value),
+    Constant::ByteString(_) => unimplemented!(),
+    Constant::String(ref value) => write!(write, "'{}'", value),
   }
 }

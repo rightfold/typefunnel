@@ -4,6 +4,7 @@
 use Schema;
 use std::io;
 
+pub mod call;
 pub mod constant;
 pub mod postgresql;
 

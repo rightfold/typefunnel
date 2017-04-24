@@ -3,6 +3,7 @@ extern crate typefunnel;
 use std::io;
 use typefunnel::asset::serialization;
 use typefunnel::source::HasSchema;
+use typefunnel::source::call::ECMAScript;
 use typefunnel::source::constant::Constant;
 
 fn main() {
@@ -19,6 +20,9 @@ fn safe_main() -> io::Result<()> {
     ]),
   ]);
   let (_, schema) = source.schema()?;
+  println!("// serialization");
   serialization::ecmascript::serialize(&mut io::stdout(), &schema)?;
+  println!("\n// call");
+  source.ecmascript_call(&mut io::stdout())?;
   Ok(())
 }
