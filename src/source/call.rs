@@ -7,7 +7,10 @@ use std::io;
 pub trait ECMAScript {
   /// Generate an ECMAScript expression that evaluates to a function that
   /// performs the call.
-  fn ecmascript_call(self, &mut io::Write) -> io::Result<ECMAScriptConvention>;
+  fn ecmascript_call(self, &mut io::Write) -> io::Result<()>;
+
+  /// Return the calling convention used for this call.
+  fn ecmascript_convention(self) -> io::Result<ECMAScriptConvention>;
 }
 
 /// Calling convention for generated ECMAScript calls.

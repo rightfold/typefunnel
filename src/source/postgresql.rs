@@ -63,8 +63,7 @@ impl<'a, 'b> HasSchema for &'a Query<'b> {
 }
 
 impl<'a, 'b> ECMAScript for &'a Query<'b> {
-  fn ecmascript_call(self, write: &mut io::Write)
-    -> io::Result<ECMAScriptConvention> {
+  fn ecmascript_call(self, write: &mut io::Write) -> io::Result<()> {
     write!(write, "(function(client, input, onSuccess, onError) {{\n")?;
     write!(write, "client.query({{text: '{}', values: ", self.query)?;
     match self.input_shape {
@@ -84,6 +83,10 @@ impl<'a, 'b> ECMAScript for &'a Query<'b> {
     write!(write, ");\n")?;
     write!(write, "}});\n")?;
     write!(write, "}})")?;
+    Ok(())
+  }
+
+  fn ecmascript_convention(self) -> io::Result<ECMAScriptConvention> {
     Ok(ECMAScriptConvention::Asynchronous)
   }
 }
