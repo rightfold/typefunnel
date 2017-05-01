@@ -1,10 +1,8 @@
 extern crate typefunnel;
 
 use std::io;
-use typefunnel::asset::serialization;
+use typefunnel::asset::web_service;
 use typefunnel::edit_warning;
-use typefunnel::source::HasSchema;
-use typefunnel::source::call::ECMAScript;
 use typefunnel::source::constant::Constant;
 
 fn main() {
@@ -20,12 +18,7 @@ fn safe_main() -> io::Result<()> {
       Constant::String("Bye, world!".to_string()),
     ]),
   ]);
-  let (_, schema) = source.schema()?;
-  println!("// serialization");
   println!("{}", edit_warning::ECMASCRIPT);
-  serialization::ecmascript::serialize(&mut io::stdout(), &schema)?;
-  println!("\n// call");
-  println!("{}", edit_warning::ECMASCRIPT);
-  source.ecmascript_call(&mut io::stdout())?;
+  web_service::ecmascript::handle(&mut io::stdout(), &source)?;
   Ok(())
 }

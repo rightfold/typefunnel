@@ -8,33 +8,18 @@ pub mod ecmascript {
 
   /// Generate an ECMAScript expression that evaluates to a function that
   /// serializes data conforming to the given schema.
-  pub fn serialize(write: &mut io::Write, schema: &Schema) -> io::Result<()> {
-    write!(write, "(function(document, namespace, parent, value) {{\n")?;
-    write!(write, "var node;\n")?;
-    match *schema {
-      Schema::AllOf(ref element_schemas) => {
-        for (index, element_schema) in element_schemas.iter().enumerate() {
-          write!(write, "node = document.createElementNS(namespace, 'element');\n")?;
-          write!(write, "parent.appendChild(node);\n")?;
-          serialize(write, element_schema)?;
-          write!(write, "(document, namespace, node, value[{}]);\n", index)?;
-        }
-      },
-      Schema::OneOf(_) =>
-        unimplemented!(),
-      Schema::SignedInteger(_, _) |
-      Schema::SinglePrecision |
-      Schema::DoublePrecision => {
-        write!(write, "node = document.createTextNode('' + value);\n")?;
-        write!(write, "parent.appendChild(node);\n")?;
-      },
-      Schema::ByteString =>
-        unimplemented!(),
-      Schema::String => {
-        write!(write, "node = document.createTextNode(value);\n")?;
-        write!(write, "parent.appendChild(node);\n")?;
-      },
-    }
+  pub fn serialize(write: &mut io::Write, _: &Schema) -> io::Result<()> {
+    write!(write, "(function(value) {{\n")?;
+    write!(write, "return value;\n")?;
+    write!(write, "}})")?;
+    Ok(())
+  }
+
+  /// Generate an ECMAScript expression that evaluates to a function that
+  /// deserializes data conforming to the given schema.
+  pub fn deserialize(write: &mut io::Write, _: &Schema) -> io::Result<()> {
+    write!(write, "(function(value) {{\n")?;
+    write!(write, "return value;\n")?;
     write!(write, "}})")?;
     Ok(())
   }
