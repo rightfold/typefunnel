@@ -50,13 +50,14 @@ fn generate_server<Source>(source: &Source) -> io::Result<()>
 }
 
 fn generate_client<Source>(source: &Source) -> io::Result<()>
-  where Source: HasSchema {
+  where Source: HasSchema + ECMAScript {
   let client = WebService(source);
 
   let module = ECMAScriptModule{
     calls: {
       let mut calls = HashMap::new();
-      calls.insert("service".to_string(), (&client as &HasSchema, &client as &ECMAScript));
+      calls.insert("local".to_string(), (source as &HasSchema, source as &ECMAScript));
+      calls.insert("remote".to_string(), (&client as &HasSchema, &client as &ECMAScript));
       calls
     },
   };
