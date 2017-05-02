@@ -3,14 +3,16 @@
 
 use Schema;
 use std::io;
+use std::rc::Rc;
 
 pub mod call;
 pub mod constant;
 pub mod postgresql;
+pub mod web_service;
 
 /// Trait for sources that have schemas.
 pub trait HasSchema {
   /// Return the input and output schemas of this source. May have side-effects
   /// to retrieve the schemas.
-  fn schema(self) -> io::Result<(Schema, Schema)>;
+  fn schema(self) -> io::Result<(Rc<Schema>, Rc<Schema>)>;
 }

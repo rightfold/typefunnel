@@ -8,6 +8,7 @@ use source::call::{ECMAScript, ECMAScriptConvention};
 use source::HasSchema;
 use std::i32;
 use std::io;
+use std::rc::Rc;
 
 mod error {
   pub static SCALAR: &'static str =
@@ -54,11 +55,11 @@ pub enum OutputShape {
 }
 
 impl<'a, 'b> HasSchema for &'a Query<'b> {
-  fn schema(self) -> io::Result<(Schema, Schema)> {
+  fn schema(self) -> io::Result<(Rc<Schema>, Rc<Schema>)> {
     let statement = self.connection.prepare(&self.query)?;
     let input_schema = input_schema(self.input_shape, &statement)?;
     let output_schema = output_schema(self.output_shape, &statement)?;
-    Ok((input_schema, output_schema))
+    Ok((Rc::new(input_schema), Rc::new(output_schema)))
   }
 }
 
@@ -164,7 +165,7 @@ mod test {
         output_shape: OutputShape::Scalar,
       };
       let schema = source.schema().map_err(|e| e.description().to_string());
-      assert_eq!(schema, Ok((Schema::AllOf(vec![]), Schema::String)));
+      assert_eq!(schema, Ok((Rc::new(Schema::AllOf(vec![])), Rc::new(Schema::String))));
     });
   }
 
@@ -182,7 +183,7 @@ mod test {
         Schema::SignedInteger(i32::MIN, i32::MAX),
         Schema::String,
       ]);
-      assert_eq!(schema, Ok((Schema::AllOf(vec![]), expected)));
+      assert_eq!(schema, Ok((Rc::new(Schema::AllOf(vec![])), Rc::new(expected))));
     });
   }
 }

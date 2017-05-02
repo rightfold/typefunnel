@@ -4,6 +4,7 @@ use Schema;
 use source::call::{ECMAScript, ECMAScriptConvention};
 use source::HasSchema;
 use std::io;
+use std::rc::Rc;
 
 /// Constant data.
 #[allow(missing_docs)]
@@ -17,8 +18,8 @@ pub enum Constant {
 }
 
 impl<'a> HasSchema for &'a Constant {
-  fn schema(self) -> io::Result<(Schema, Schema)> {
-    Ok((Schema::AllOf(vec![]), output_schema(self)))
+  fn schema(self) -> io::Result<(Rc<Schema>, Rc<Schema>)> {
+    Ok((Rc::new(Schema::AllOf(vec![])), Rc::new(output_schema(self))))
   }
 }
 
