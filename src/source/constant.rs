@@ -17,21 +17,21 @@ pub enum Constant {
   String(String),
 }
 
-impl<'a> HasSchema for &'a Constant {
-  fn schema(self) -> io::Result<(Rc<Schema>, Rc<Schema>)> {
+impl HasSchema for Constant {
+  fn schema(&self) -> io::Result<(Rc<Schema>, Rc<Schema>)> {
     Ok((Rc::new(Schema::AllOf(vec![])), Rc::new(output_schema(self))))
   }
 }
 
-impl<'a> ECMAScript for &'a Constant {
-  fn ecmascript_call(self, write: &mut io::Write) -> io::Result<()> {
+impl ECMAScript for Constant {
+  fn ecmascript_call(&self, write: &mut io::Write) -> io::Result<()> {
     write!(write, "(function() {{\nreturn ")?;
     ecmascript_expression(write, self)?;
     write!(write, ";\n}})")?;
     Ok(())
   }
 
-  fn ecmascript_convention(self) -> io::Result<ECMAScriptConvention> {
+  fn ecmascript_convention(&self) -> io::Result<ECMAScriptConvention> {
     Ok(ECMAScriptConvention::Synchronous)
   }
 }

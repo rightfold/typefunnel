@@ -1,5 +1,6 @@
 extern crate typefunnel;
 
+use std::collections::HashMap;
 use std::fs;
 use std::fs::File;
 use std::io;
@@ -7,7 +8,7 @@ use std::io::Write;
 use typefunnel::asset::web_service;
 use typefunnel::edit_warning;
 use typefunnel::source::HasSchema;
-use typefunnel::source::call::ECMAScript;
+use typefunnel::source::call::{ECMAScript, ECMAScriptModule};
 use typefunnel::source::constant::Constant;
 use typefunnel::source::web_service::WebService;
 
@@ -32,8 +33,8 @@ fn safe_main() -> io::Result<()> {
   Ok(())
 }
 
-fn generate_server<Source>(source: Source) -> io::Result<()>
-  where Source: HasSchema + ECMAScript + Copy {
+fn generate_server<Source>(source: &Source) -> io::Result<()>
+  where Source: HasSchema + ECMAScript {
   let mut file = File::create("/tmp/typefunnel/server.js")?;
   write!(file, "{}\n", edit_warning::ECMASCRIPT)?;
   write!(file, "var express = require('express');\n")?;
@@ -47,12 +48,30 @@ fn generate_server<Source>(source: Source) -> io::Result<()>
   Ok(())
 }
 
-fn generate_client<Source>(source: Source) -> io::Result<()>
+fn generate_client<Source>(source: &Source) -> io::Result<()>
   where Source: HasSchema {
-  let mut file = File::create("/tmp/typefunnel/client.js")?;
   let (input_schema, output_schema) = source.schema()?;
   let client = WebService(input_schema, output_schema);
-  writeln!(file, "{}", edit_warning::ECMASCRIPT)?;
-  client.ecmascript_call(&mut file)?;
+
+  let module = ECMAScriptModule{
+    calls: {
+      let mut calls = HashMap::new();
+      calls.insert("service".to_string(), (&client as &HasSchema, &client as &ECMAScript));
+      calls
+    },
+  };
+
+  {
+    let mut file = File::create("/tmp/typefunnel/client.js")?;
+    writeln!(file, "{}", edit_warning::ECMASCRIPT)?;
+    module.ecmascript(&mut file)?;
+  }
+
+  {
+    let mut file = File::create("/tmp/typefunnel/client.purs")?;
+    writeln!(file, "{}", edit_warning::PURESCRIPT)?;
+    module.purescript(&mut file)?;
+  }
+
   Ok(())
 }

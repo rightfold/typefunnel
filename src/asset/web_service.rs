@@ -10,8 +10,9 @@ pub mod ecmascript {
 
   /// Generate an ECMAScript expression that evaluates to a function that
   /// handles a HTTP request by calling the source.
-  pub fn handle<Source>(write: &mut io::Write, source: Source) -> io::Result<()>
-    where Source: HasSchema + ECMAScript + Copy {
+  pub fn handle<Source>(write: &mut io::Write, source: &Source)
+    -> io::Result<()>
+    where Source: HasSchema + ECMAScript {
     let (input_schema, output_schema) = source.schema()?;
 
     write!(write, "((function() {{\n")?;

@@ -14,5 +14,5 @@ pub mod web_service;
 pub trait HasSchema {
   /// Return the input and output schemas of this source. May have side-effects
   /// to retrieve the schemas.
-  fn schema(self) -> io::Result<(Rc<Schema>, Rc<Schema>)>;
+  fn schema(&self) -> io::Result<(Rc<Schema>, Rc<Schema>)>;
 }

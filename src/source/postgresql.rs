@@ -54,8 +54,8 @@ pub enum OutputShape {
   Scalar,
 }
 
-impl<'a, 'b> HasSchema for &'a Query<'b> {
-  fn schema(self) -> io::Result<(Rc<Schema>, Rc<Schema>)> {
+impl<'a> HasSchema for Query<'a> {
+  fn schema(&self) -> io::Result<(Rc<Schema>, Rc<Schema>)> {
     let statement = self.connection.prepare(&self.query)?;
     let input_schema = input_schema(self.input_shape, &statement)?;
     let output_schema = output_schema(self.output_shape, &statement)?;
@@ -63,8 +63,8 @@ impl<'a, 'b> HasSchema for &'a Query<'b> {
   }
 }
 
-impl<'a, 'b> ECMAScript for &'a Query<'b> {
-  fn ecmascript_call(self, write: &mut io::Write) -> io::Result<()> {
+impl<'a> ECMAScript for Query<'a> {
+  fn ecmascript_call(&self, write: &mut io::Write) -> io::Result<()> {
     write!(write, "(function(client, input, onSuccess, onError) {{\n")?;
     write!(write, "client.query({{text: '{}', values: ", self.query)?;
     match self.input_shape {
@@ -87,7 +87,7 @@ impl<'a, 'b> ECMAScript for &'a Query<'b> {
     Ok(())
   }
 
-  fn ecmascript_convention(self) -> io::Result<ECMAScriptConvention> {
+  fn ecmascript_convention(&self) -> io::Result<ECMAScriptConvention> {
     Ok(ECMAScriptConvention::Asynchronous)
   }
 }
