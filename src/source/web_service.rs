@@ -35,7 +35,7 @@ impl<'a> ECMAScript for &'a WebService {
     write!(write, "}});\n")?;
     write!(write, "xhr.open('POST', url);\n")?;
     write!(write, "xhr.send(JSON.stringify(serialize(input)));\n")?;
-    write!(write, "}};")?;
+    write!(write, "}};\n")?;
 
     write!(write, "}})())")?;
 
