@@ -10,9 +10,12 @@
 
 extern crate postgres;
 
+pub mod constant;
 pub mod edit_warning;
+pub mod postgresql;
+pub mod serialization;
 pub mod source;
-pub mod asset;
+pub mod web_service;
 
 /// A schema describes the structure of data. Schemas are generated from
 /// sources, and are used to generate web services, serialization functions,

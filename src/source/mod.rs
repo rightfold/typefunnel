@@ -6,9 +6,6 @@ use std::io;
 use std::rc::Rc;
 
 pub mod call;
-pub mod constant;
-pub mod postgresql;
-pub mod web_service;
 
 /// Trait for sources that have schemas.
 pub trait HasSchema {

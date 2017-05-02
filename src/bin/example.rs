@@ -5,12 +5,12 @@ use std::fs;
 use std::fs::File;
 use std::io;
 use std::io::Write;
-use typefunnel::asset::web_service;
 use typefunnel::edit_warning;
 use typefunnel::source::HasSchema;
 use typefunnel::source::call::{ECMAScript, ECMAScriptModule};
-use typefunnel::source::constant::Constant;
-use typefunnel::source::web_service::WebService;
+use typefunnel::constant::Constant;
+use typefunnel::web_service;
+use typefunnel::web_service::WebService;
 
 fn main() {
   safe_main().unwrap();
@@ -35,6 +35,7 @@ fn safe_main() -> io::Result<()> {
 
 fn generate_server<Source>(source: &Source) -> io::Result<()>
   where Source: HasSchema + ECMAScript {
+  let service = WebService(source);
   let mut file = File::create("/tmp/typefunnel/server.js")?;
   write!(file, "{}\n", edit_warning::ECMASCRIPT)?;
   write!(file, "var express = require('express');\n")?;
@@ -42,7 +43,7 @@ fn generate_server<Source>(source: &Source) -> io::Result<()>
   write!(file, "var app = express();\n")?;
   write!(file, "app.use(bodyParser.json({{strict: false}}));\n")?;
   write!(file, "app.post('/', ")?;
-  web_service::ecmascript::handle(&mut file, source)?;
+  web_service::ecmascript::handle(&mut file, &service)?;
   write!(file, ".bind(null, null));\n")?;
   write!(file, "app.listen(1337);\n")?;
   Ok(())
@@ -50,8 +51,7 @@ fn generate_server<Source>(source: &Source) -> io::Result<()>
 
 fn generate_client<Source>(source: &Source) -> io::Result<()>
   where Source: HasSchema {
-  let (input_schema, output_schema) = source.schema()?;
-  let client = WebService(input_schema, output_schema);
+  let client = WebService(source);
 
   let module = ECMAScriptModule{
     calls: {
