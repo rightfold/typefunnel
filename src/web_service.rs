@@ -56,6 +56,18 @@ impl<'a, Source> ECMAScript for WebService<'a, Source>  where Source: HasSchema 
 pub mod ecmascript {
   use super::*;
 
+  /// Generate an ECMAScript statement that sets up an Express application. It
+  /// does not call `listen` on the application.
+  pub fn serve<F>(write: &mut io::Write, f: F) -> io::Result<()>
+    where F: FnOnce(&mut io::Write) -> io::Result<()> {
+    write!(write, "var express = require('express');\n")?;
+    write!(write, "var bodyParser = require('body-parser');\n")?;
+    write!(write, "var app = express();\n")?;
+    write!(write, "app.use(bodyParser.json({{strict: false}}));\n")?;
+    f(write)?;
+    Ok(())
+  }
+
   /// Generate an ECMAScript statement attaches a request handler that handles
   /// a HTTP request by calling the source.
   pub fn handle<Source>(

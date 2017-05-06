@@ -41,11 +41,10 @@ fn generate_server<Source>(source: &Source) -> io::Result<()>
   };
   let mut file = File::create("/tmp/typefunnel/server.js")?;
   write!(file, "{}\n", edit_warning::ECMASCRIPT)?;
-  write!(file, "var express = require('express');\n")?;
-  write!(file, "var bodyParser = require('body-parser');\n")?;
-  write!(file, "var app = express();\n")?;
-  write!(file, "app.use(bodyParser.json({{strict: false}}));\n")?;
-  web_service::ecmascript::handle(&mut file, &service, "null")?;
+  web_service::ecmascript::serve(&mut file, |file| {
+    web_service::ecmascript::handle(file, &service, "null")?;
+    Ok(())
+  })?;
   write!(file, "app.listen(1337);\n")?;
   Ok(())
 }
