@@ -27,18 +27,18 @@ fn safe_main() -> io::Result<()> {
   ]);
 
   fs::create_dir_all("/tmp/typefunnel")?;
-  generate_server(&source)?;
-  generate_client(&source)?;
+  let service = WebService{
+    name: "foo".to_string(),
+    source: &source,
+  };
+  generate_server(&service)?;
+  generate_client(&service)?;
 
   Ok(())
 }
 
-fn generate_server<Source>(source: &Source) -> io::Result<()>
+fn generate_server<Source>(service: &WebService<Source>) -> io::Result<()>
   where Source: HasSchema + ECMAScript {
-  let service = WebService{
-    name: "foo".to_string(),
-    source: source,
-  };
   let mut file = File::create("/tmp/typefunnel/server.js")?;
   write!(file, "{}\n", edit_warning::ECMASCRIPT)?;
   web_service::ecmascript::serve(&mut file, |file| {
@@ -49,18 +49,12 @@ fn generate_server<Source>(source: &Source) -> io::Result<()>
   Ok(())
 }
 
-fn generate_client<Source>(source: &Source) -> io::Result<()>
+fn generate_client<Source>(service: &WebService<Source>) -> io::Result<()>
   where Source: HasSchema + ECMAScript {
-  let client = WebService{
-    name: "foo".to_string(),
-    source: source,
-  };
-
   let module = ECMAScriptModule{
     calls: {
       let mut calls = HashMap::new();
-      calls.insert("local".to_string(), (source as &HasSchema, source as &ECMAScript));
-      calls.insert("remote".to_string(), (&client as &HasSchema, &client as &ECMAScript));
+      calls.insert("remote".to_string(), (service as &HasSchema, service as &ECMAScript));
       calls
     },
   };
