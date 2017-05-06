@@ -7,11 +7,14 @@ use source::call::{ECMAScript, ECMAScriptConvention};
 use std::io;
 use std::rc::Rc;
 
-pub struct WebService<'a, Source>(pub &'a Source) where Source: 'a;
+pub struct WebService<'a, Source> where Source: 'a {
+  pub name: String,
+  pub source: &'a Source,
+}
 
 impl<'a, Source> HasSchema for WebService<'a, Source> where Source: HasSchema {
   fn schema(&self) -> io::Result<(Rc<Schema>, Rc<Schema>)> {
-    self.0.schema()
+    self.source.schema()
   }
 }
 
@@ -35,7 +38,7 @@ impl<'a, Source> ECMAScript for WebService<'a, Source>  where Source: HasSchema 
     write!(write, "var output = deserialize(JSON.parse(xhr.responseText));\n")?;
     write!(write, "onSuccess(output);\n")?;
     write!(write, "}});\n")?;
-    write!(write, "xhr.open('POST', url);\n")?;
+    write!(write, "xhr.open('POST', url + '/{}');\n", self.name)?;
     write!(write, "xhr.send(JSON.stringify(serialize(input)));\n")?;
     write!(write, "}};\n")?;
 
@@ -53,12 +56,14 @@ impl<'a, Source> ECMAScript for WebService<'a, Source>  where Source: HasSchema 
 pub mod ecmascript {
   use super::*;
 
-  /// Generate an ECMAScript expression that evaluates to a function that
-  /// handles a HTTP request by calling the source.
-  pub fn handle<Source>(write: &mut io::Write, service: &WebService<Source>)
-    -> io::Result<()>
-    where Source: HasSchema + ECMAScript {
-    let (input_schema, output_schema) = service.0.schema()?;
+  /// Generate an ECMAScript statement attaches a request handler that handles
+  /// a HTTP request by calling the source.
+  pub fn handle<Source>(
+    write: &mut io::Write,
+    service: &WebService<Source>,
+    context: &str
+  ) -> io::Result<()> where Source: HasSchema + ECMAScript {
+    let (input_schema, output_schema) = service.source.schema()?;
 
     write!(write, "((function() {{\n")?;
 
@@ -71,27 +76,27 @@ pub mod ecmascript {
     write!(write, ";\n")?;
 
     write!(write, "var call = ")?;
-    service.0.ecmascript_call(write)?;
+    service.source.ecmascript_call(write)?;
     write!(write, ";\n")?;
 
-    write!(write, "return function(context, req, res) {{\n")?;
+    write!(write, "app.post('/{}', function(req, res) {{\n", service.name)?;
     write!(write, "var input = deserialize(req.body);\n")?;
-    match service.0.ecmascript_convention()? {
+    match service.source.ecmascript_convention()? {
       ECMAScriptConvention::Synchronous => {
-        write!(write, "var output = call(context, input);\n")?;
+        write!(write, "var output = call({}, input);\n", context)?;
         continuation(write)?;
       },
       ECMAScriptConvention::Asynchronous => {
-        write!(write, "call(context, input, function(output) {{\n")?;
+        write!(write, "call({}, input, function(output) {{\n", context)?;
         continuation(write)?;
         write!(write, "}}, function(error) {{\n")?;
         write!(write, "res.status(500);\n")?;
         write!(write, "}});\n")?;
       },
     }
-    write!(write, "}};\n")?;
+    write!(write, "}});\n")?;
 
-    write!(write, "}})())")?;
+    write!(write, "}})());\n")?;
 
     Ok(())
   }

@@ -35,23 +35,27 @@ fn safe_main() -> io::Result<()> {
 
 fn generate_server<Source>(source: &Source) -> io::Result<()>
   where Source: HasSchema + ECMAScript {
-  let service = WebService(source);
+  let service = WebService{
+    name: "foo".to_string(),
+    source: source,
+  };
   let mut file = File::create("/tmp/typefunnel/server.js")?;
   write!(file, "{}\n", edit_warning::ECMASCRIPT)?;
   write!(file, "var express = require('express');\n")?;
   write!(file, "var bodyParser = require('body-parser');\n")?;
   write!(file, "var app = express();\n")?;
   write!(file, "app.use(bodyParser.json({{strict: false}}));\n")?;
-  write!(file, "app.post('/', ")?;
-  web_service::ecmascript::handle(&mut file, &service)?;
-  write!(file, ".bind(null, null));\n")?;
+  web_service::ecmascript::handle(&mut file, &service, "null")?;
   write!(file, "app.listen(1337);\n")?;
   Ok(())
 }
 
 fn generate_client<Source>(source: &Source) -> io::Result<()>
   where Source: HasSchema + ECMAScript {
-  let client = WebService(source);
+  let client = WebService{
+    name: "foo".to_string(),
+    source: source,
+  };
 
   let module = ECMAScriptModule{
     calls: {
